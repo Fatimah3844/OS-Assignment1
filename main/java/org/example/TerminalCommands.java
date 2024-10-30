@@ -9,7 +9,12 @@ import java.nio.file.Path;
 import java.util.Scanner;
 
 public class TerminalCommands {
+     Path currentDir;
 
+    public TerminalCommands() {
+        currentDir = Path.of(System.getProperty("user.dir"));
+
+    }
     /*
     * mkdir
     * make new directory or nested directory in absolute or relative path
@@ -268,6 +273,121 @@ public class TerminalCommands {
             }
 
     }
+    /*
+   * ls() lists contents (file & dires) of current directory
+   *
+   *
+   *
+   * */
+
+
+    public void ls(String[] args) {
+        Path currentDir = Paths.get(System.getProperty("user.dir"));
+        File[] contents = currentDir.toFile().listFiles();
+        // make flags to mark args of command
+        boolean showHidden = false;
+        boolean reverseOrder = false;
+
+        // this command can take different options -a , -r
+
+        if (args.length == 1) {
+            if (args[0].equals("-a")) { // will show all files including hidden ones
+                showHidden = true;
+            } else if (args[0].equals("-r")) { // will show or lists files in reverse order excluding hidden ones
+                reverseOrder = true;
+            } else {
+                System.out.println("ls: invalid argument (currently supports only -r or -a)");
+                return;
+            }
+        } else if (args.length == 2) { // if 2 options provided , it wii mark flags
+            if ((args[0].equals("-a") && args[1].equals("-r")) || (args[0].equals("-r") && args[1].equals("-a"))) {
+                showHidden = true;
+                reverseOrder = true;
+            } else {
+                System.out.println("ls: invalid combination of arguments");
+                return;
+            }
+        } else if (args.length > 2) {
+            System.out.println("ls: too many arguments");
+            return;
+        }
+
+
+        List<File> fileList = new ArrayList<>();
+        final boolean finalShowHidden = showHidden;
+        final boolean finalReverseOrder = reverseOrder;
+
+        //  Filter files based on the hidden files setting
+        for (File file : contents) {
+            if (showHidden || !file.getName().startsWith(".")) {
+                fileList.add(file);
+            }
+        }
+
+    // Sort the list based on the reverse order setting
+        if (reverseOrder) {
+            fileList.sort(Comparator.reverseOrder());
+        } else {
+            fileList.sort(Comparator.naturalOrder());
+        }
+
+    // fileList contains the filtered and sorted files
+        for (File file : fileList) {
+            System.out.println(file.getName());  // Print each file name
+        }
+
+
+    }
+  /*
+  * pwd print current path
+  *
+  * */
+
+     public void pwd(){
+         Path currentDir = Paths.get(System.getProperty("user.dir"));
+         System.out.println(currentDir.normalize());// remove  redundant parts from path
+     }
+
+    /*
+    * cd change the current directory
+    *
+    *
+    *
+    * */
+
+    public void cd(String[] args) {
+        if (args.length > 1) { // if args more than 1
+            System.out.println("cd: too many arguments");
+            return;
+        }
+
+        // If no arguments are passed, go to the home directory
+        if (args.length == 0) {
+            Path homeDir = Path.of(System.getProperty("user.home"));
+            if (Files.isDirectory(homeDir)) {
+                currentDir = homeDir;
+                System.out.println("Changed directory to home: " + currentDir);
+            } else {
+                System.out.println("cd: cannot change to home directory: No such directory");
+            }
+            return;
+        }
+
+        // If one argument is passed
+        String dir = args[0];
+        try {
+            Path newDir = currentDir.resolve(dir).normalize();
+            if (Files.isDirectory(newDir)) {
+                currentDir = newDir; // Update the class-level currentDir
+                System.out.println("Changed directory to: " + currentDir);
+            } else {
+                System.out.println("cd: cannot change directory to '" + dir + "': No such directory");
+            }
+        } catch (InvalidPathException e) {
+            System.out.println("cd: invalid path '" + dir + "'");
+        }
+    }
+
 
 
 
