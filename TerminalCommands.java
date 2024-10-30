@@ -47,48 +47,54 @@ public class TerminalCommands {
 
     /*
      * rmdir
-     * remove empty directory only
+     * remove directory
      *
      * */
 
-    public void rmdir(String [] args){
-        if(args.length == 0){
+    public void rmdir(String[] args) {
+        if (args.length == 0) {
             System.out.println("Need at least one argument!");
             return;
-        }
-        else if(args.length > 1){
+        } else if (args.length > 1) {
             System.out.println("Need a single argument!");
+            return;
         }
-        else{
-            for(String dir : args){
-                File file = new File(dir); //directory to be removed
-                if(!file.isAbsolute())//if path is relative
-                {
-                    Path currentDir = Paths.get(System.getProperty("user.dir")).toAbsolutePath();//retrieve current working directory
-                    Path relativePath=Paths.get(dir);//create path from relative directory name
-                    Path newPath=currentDir.resolve(relativePath);
-                    file=new File(newPath.toString());
+
+        for (String dir : args) {
+            File file = new File(dir); // Directory to be removed
+            if (!file.isAbsolute()) { // If path is relative
+                Path currentDir = Paths.get(System.getProperty("user.dir")).toAbsolutePath(); // Retrieve current working directory
+                Path relativePath = Paths.get(dir); // Create path from relative directory name
+                Path newPath = currentDir.resolve(relativePath);
+                file = new File(newPath.toString());
+            }
+
+            if (file.exists()) {
+                if (file.isDirectory()) {
+                    // delete files and subdirectories
+                    deleteDirectory(file);
+                    System.out.println("Directory deleted successfully: " + file.getAbsolutePath());
+                } else {
+                    System.out.println("The specified path is not a directory: " + file.getAbsolutePath());
                 }
-                if(file.exists()) {
-                    if(file.isDirectory()&&file.list().length==0){ //checks if file is empty or not
-                        if(file.delete()){
-                            System.out.println("Directory deleted sucessfully: " + file.getAbsolutePath());
-                        }
-                        else{
-                            System.out.println("Failed to delete directory: " + file.getAbsolutePath());
-                        }
-                    }//folder not empty
-                    else{
-                        System.out.println("Directory is not empty or does not exits!");
-                    }
-                }
-                else{//folder not exist
-                    System.out.println("Directory does not exist!");
-                }
+            } else { // Folder does not exist
+                System.out.println("Directory does not exist: " + file.getAbsolutePath());
             }
         }
     }
 
+    private void deleteDirectory(File directory) {
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    deleteDirectory(file); // Recursively delete subdirectory
+                }
+                file.delete(); // Delete file or empty directory
+            }
+        }
+        directory.delete(); // Finally delete the empty directory
+    }
     /*
      * rm
      * delete file in the current directory
