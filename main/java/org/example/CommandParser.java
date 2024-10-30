@@ -32,7 +32,7 @@ public class CommandParser {
             //copy from token array to args array
             System.arraycopy(tokens, 1, args, 0, tokens.length - 1);
 
-            switch (command.toLowerCase()) {
+           switch (command.toLowerCase()) {
                 case "mkdir":
                     terminalCommands.mkdir(args);
                     break;
@@ -54,6 +54,15 @@ public class CommandParser {
                     } else {
                         System.out.println("Invalid usage of mv command.");
                     }
+                    break;
+                case "ls":
+                    terminalCommands.ls(args);
+                    break;
+                case "cd":
+                    terminalCommands.cd(args);
+                    break;
+                case "pwd":
+                    terminalCommands.pwd();
                     break;
                 default:
                     System.out.println("Unknown command: " + command);
