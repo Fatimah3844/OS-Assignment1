@@ -127,4 +127,104 @@ class TerminalCommandsTest {
         new File("movedFile.txt").delete();
         new File("renamedFile.txt").delete();
     }
+    //_________________________________________________________
+     // Test for ls with no arguments
+    @Test
+    void testLsShowFiles() throws IOException {
+        File file1 = new File("file1.txt");
+        File file2 = new File("file2.txt");
+        file1.createNewFile();
+        file2.createNewFile();
+
+        terminalCommands.ls(new String[0]);  // Test with no args
+
+        // Clean up
+        file1.delete();
+        file2.delete();
+    }
+
+    // Test ls with -a argument (show hidden files)
+    @Test
+    void testLsShowHiddenFiles() throws IOException {
+        File file1 = new File(".hiddenFile.txt");
+        file1.createNewFile();
+
+        terminalCommands.ls(new String[]{"-a"});  // Expect to see hidden files
+
+        // Clean up
+        file1.delete();
+    }
+
+    // Test ls with -r argument (reverse order)
+    @Test
+    void testLsReverseOrder() throws IOException {
+        File file1 = new File("fileA.txt");
+        File file2 = new File("fileB.txt");
+        file1.createNewFile();
+        file2.createNewFile();
+
+        terminalCommands.ls(new String[]{"-r"});  // Expect reverse order
+
+        // Clean up
+        file1.delete();
+        file2.delete();
+    }
+
+    // Test ls with both -a and -r arguments
+    @Test
+    void testLsShowHiddenAndReverseOrder() throws IOException {
+        File file1 = new File(".hiddenFile.txt");
+        File file2 = new File("fileB.txt");
+        file1.createNewFile();
+        file2.createNewFile();
+
+        terminalCommands.ls(new String[]{"-a", "-r"});  // Expect hidden and reverse order
+
+        // Clean up
+        file1.delete();
+        file2.delete();
+    }
+
+    // Test for pwd (prints current directory)
+    @Test
+    void testPwd() {
+        terminalCommands.pwd();
+    }
+
+    // Test cd to home directory
+    @Test
+    void testCdToHome() {
+        terminalCommands.cd(new String[0]);
+        assertEquals(System.getProperty("user.home"), terminalCommands.currentDir.toString());
+    }
+
+    // Test cd to an existing directory
+    @Test
+    void testCdToDirectory() {
+        File dir = new File("testDir");
+        dir.mkdir();
+        terminalCommands.cd(new String[]{"testDir"});
+        assertEquals(dir.getAbsolutePath(), terminalCommands.currentDir.toString());
+
+        // Clean up
+        dir.delete();
+    }
+
+    // Test cd to a non-existent directory
+    @Test
+    void testCdToNonExistentDirectory() {
+        terminalCommands.cd(new String[]{"nonExistentDir"});
+        // Expected output: should display an error message and not change the directory
+        assertNotEquals("nonExistentDir", terminalCommands.currentDir.toString());
+    }
+
+    // Test cd with too many arguments
+    @Test
+    void testCdTooManyArguments() {
+        terminalCommands.cd(new String[]{"dir1", "dir2"});
+        // Expected output: should display an error message for too many arguments
+    }
+
+
+    
 }
