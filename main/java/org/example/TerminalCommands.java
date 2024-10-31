@@ -224,51 +224,55 @@ public class TerminalCommands {
     }
     /*
      * ls() lists contents (file & dires) of current directory
-     *
+     * handels redirect
      *
      *
      * */
 
 
-    public void ls(String[] args) {
-
+   public void ls(String[] args) {
         File[] contents = currentDir.toFile().listFiles();
-        // make flags to mark args of command
         boolean showHidden = false;
         boolean reverseOrder = false;
+        boolean redirectOutput = false;
+        boolean appendOutput = false;
+        String outputFile = null;
 
-        // this command can take different options -a , -r
-
-        if (args.length == 1) {
-            if (args[0].equals("-a")) { // will show all files including hidden ones
+        // Parse arguments
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-a")) {
                 showHidden = true;
-            } else if (args[0].equals("-r")) { // will show or lists files in reverse order excluding hidden ones
+            } else if (args[i].equals("-r")) {
                 reverseOrder = true;
+            } else if (args[i].equals(">")) {
+                redirectOutput = true;
+                appendOutput = false;
+                if (i + 1 < args.length) {
+                    outputFile = args[i + 1];
+                    i++; // Skip the output file argument
+                } else {
+                    System.err.println("Missing output file for redirection");
+                    return;
+                }
+            } else if (args[i].equals(">>")) {
+                redirectOutput = true;
+                appendOutput = true;
+                if (i + 1 < args.length) {
+                    outputFile = args[i + 1];
+                    i++; // Skip the output file argument
+                } else {
+                    System.err.println("Missing output file for redirection");
+                    return;
+                }
             } else {
-                System.out.println("ls: invalid argument (currently supports only -r or -a)");
+                System.err.println("Invalid argument: " + args[i]);
                 return;
             }
-        } else if (args.length == 2) { // if 2 options provided , it wii mark flags
-            if ((args[0].equals("-a") && args[1].equals("-r")) || (args[0].equals("-r") && args[1].equals("-a"))) {
-                showHidden = true;
-                reverseOrder = true;
-            } else {
-                System.out.println("ls: invalid combination of arguments");
-                return;
-            }
-        } else if (args.length > 2) {
-            System.out.println("ls: too many arguments");
-            return;
         }
 
-
         List<File> fileList = new ArrayList<>();
-        final boolean finalShowHidden = showHidden;
-        final boolean finalReverseOrder = reverseOrder;
 
-
-
-        //  Filter files based on the hidden files setting
+        // Filter files based on the hidden files setting
         for (File file : contents) {
             if (showHidden || !file.getName().startsWith(".")) {
                 fileList.add(file);
@@ -282,13 +286,23 @@ public class TerminalCommands {
             fileList.sort(Comparator.naturalOrder());
         }
 
-        // fileList contains the filtered and sorted files
-        for (File file : fileList) {
-            System.out.println(file.getName());  // Print each file name
+        // Write to file or console
+        if (redirectOutput) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile, appendOutput))) {
+                for (File file : fileList) {
+                    writer.write(file.getName());
+                    writer.newLine();
+                }
+            } catch (IOException e) {
+                System.err.println("Error writing to file: " + e.getMessage());
+            }
+        } else {
+            for (File file : fileList) {
+                System.out.println(file.getName());
+            }
         }
-
-
     }
+
     /*
      * pwd print current path
      *
