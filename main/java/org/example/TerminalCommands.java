@@ -9,43 +9,34 @@ import java.nio.file.Path;
 import java.util.Scanner;
 
 public class TerminalCommands {
-     Path currentDir;
+    public Path currentDir = Paths.get(System.getProperty("user.dir"));
 
     public TerminalCommands() {
         currentDir = Path.of(System.getProperty("user.dir"));
 
     }
     /*
-    * mkdir
-    * make new directory or nested directory in absolute or relative path
-    *
-    * */
+     * mkdir
+     * make new directory or nested directory in absolute or relative path
+     *
+     * */
     public void mkdir(String [] args){
         if(args.length == 0){
             System.out.println("Need at least one argument!");
             return;
         }
-        else{
-            for(String dir : args){
-                File file = new File(dir);//directory to be created
-                if(!file.isAbsolute())//if path is relative
-                {
-                    Path currentDir = Paths.get(System.getProperty("user.dir")).toAbsolutePath();//retrieve current working directory
-                    Path relativePath=Paths.get(dir);//create path from relative directory name
-                    Path newPath=currentDir.resolve(relativePath);
-                    file=new File(newPath.toString());
+        for (String dir : args) {
+            Path newDirPath = currentDir.resolve(dir).normalize(); // Use currentDir to create path
+            File newDir = newDirPath.toFile(); // Convert to File object
+
+            if (!newDir.exists()) {
+                if (newDir.mkdirs()) {
+                    System.out.println("Directory created successfully: " + newDir.getAbsolutePath());
+                } else {
+                    System.out.println("Failed to create directory: " + newDir.getAbsolutePath());
                 }
-                if(!file.exists())
-                {
-                    if (file.mkdirs()) {
-                        System.out.println("Directory created sucessfully: " + file.getAbsolutePath());
-                    } else {
-                        System.out.println("Failed to create directory: " + file.getAbsolutePath());
-                    }
-                }
-                else{
-                    System.out.println("This folder name already exists!");
-                }
+            } else {
+                System.out.println("This folder name already exists!");
             }
         }
     }
@@ -66,24 +57,18 @@ public class TerminalCommands {
         }
 
         for (String dir : args) {
-            File file = new File(dir); // Directory to be removed
-            if (!file.isAbsolute()) { // If path is relative
-                Path currentDir = Paths.get(System.getProperty("user.dir")).toAbsolutePath(); // Retrieve current working directory
-                Path relativePath = Paths.get(dir); // Create path from relative directory name
-                Path newPath = currentDir.resolve(relativePath);
-                file = new File(newPath.toString());
-            }
+            Path dirPath = currentDir.resolve(dir).normalize(); // Use currentDir
+            File dirFile = dirPath.toFile();
 
-            if (file.exists()) {
-                if (file.isDirectory()) {
-                    // delete files and subdirectories
-                    deleteDirectory(file);
-                    System.out.println("Directory deleted successfully: " + file.getAbsolutePath());
+            if (dirFile.exists()) {
+                if (dirFile.isDirectory()) {
+                    deleteDirectory(dirFile);
+                    System.out.println("Directory deleted successfully: " + dirFile.getAbsolutePath());
                 } else {
-                    System.out.println("The specified path is not a directory: " + file.getAbsolutePath());
+                    System.out.println("The specified path is not a directory: " + dirFile.getAbsolutePath());
                 }
-            } else { // Folder does not exist
-                System.out.println("Directory does not exist: " + file.getAbsolutePath());
+            } else {
+                System.out.println("Directory does not exist: " + dirFile.getAbsolutePath());
             }
         }
     }
@@ -111,28 +96,18 @@ public class TerminalCommands {
             System.out.println("Invalid input, Expected one argument!");
             return;
         }
-        else{
-            String fileDelete=args[0];
-            File file=new File(fileDelete);
-            //get the absolute path for the file
-            if(!file.isAbsolute()){
-                Path currentDir = Paths.get(System.getProperty("user.dir")).toAbsolutePath();
-                Path relativePath = Paths.get(fileDelete);
-                Path newPath = currentDir.resolve(relativePath);
-                file = new File(newPath.toString());
-            }
-            if(file.exists()&&!file.isDirectory()){
-                if(file.delete()){
-                    System.out.println("This File is deleted successfully: "+file.getAbsolutePath());
+        String fileDelete = args[0];
+        Path filePath = currentDir.resolve(fileDelete).normalize(); // Use currentDir
+        File file = filePath.toFile();
 
-                }
-                else{
-                    System.out.println("Failed to delete this file: "+file.getAbsolutePath());
-                }
+        if (file.exists() && !file.isDirectory()) {
+            if (file.delete()) {
+                System.out.println("This file is deleted successfully: " + file.getAbsolutePath());
+            } else {
+                System.out.println("Failed to delete this file: " + file.getAbsolutePath());
             }
-            else{
-                System.out.println("File does not exist!");
-            }
+        } else {
+            System.out.println("File does not exist!");
         }
     }
 
@@ -146,28 +121,19 @@ public class TerminalCommands {
             System.out.println("Invalid input, Expected one argument!");
             return;
         }
-        else {
-            for (String newFile : args) {
-                File file = new File(newFile);
-                //get the absolute path for the file
-                if (!file.isAbsolute()) {
-                    Path currentDir = Paths.get(System.getProperty("user.dir")).toAbsolutePath();
-                    Path relativePath = Paths.get(newFile);
-                    Path newPath = currentDir.resolve(relativePath);
-                    file = new File(newPath.toString());
-                }
-                try {
-                    if (file.createNewFile()) { //create new file if it not exist
-                        System.out.println("File created sucessfully: " + file.getAbsolutePath());
-                    } else {//update exist file
-                        file.setLastModified(System.currentTimeMillis());
-                        System.out.println("File updated sucessfully: " + file.getAbsolutePath());
-                    }
-                } catch (IOException e) {
-                    System.out.println("Error while creating or updating the file!");
-                }
-            }
+        String newFile = args[0];
+        Path filePath = currentDir.resolve(newFile).normalize(); // Use currentDir
+        File file = filePath.toFile();
 
+        try {
+            if (file.createNewFile()) {
+                System.out.println("File created successfully: " + file.getAbsolutePath());
+            } else {
+                file.setLastModified(System.currentTimeMillis());
+                System.out.println("File updated successfully: " + file.getAbsolutePath());
+            }
+        } catch (IOException e) {
+            System.out.println("Error while creating or updating the file!");
         }
     }
 
@@ -197,7 +163,8 @@ public class TerminalCommands {
             }
 
             // Handle write or append
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, firstArg.equals(">>")))) {
+            Path outputPath = currentDir.resolve(filename).normalize(); // Use currentDir
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputPath.toFile(), firstArg.equals(">>")))) {
                 Scanner in = new Scanner(System.in);
                 System.out.println("Write in the file then add @c to close the file");
                 String inputString;
@@ -205,17 +172,14 @@ public class TerminalCommands {
                     writer.write(inputString);
                     writer.newLine();
                 }
-                System.out.println("Content written to file: " + filename);
+                System.out.println("Content written to file: " + outputPath);
             } catch (IOException e) {
                 System.out.println("Error while writing to the file: " + e.getMessage());
             }
         } else {
             // Handle displaying the file content
-            File file = new File(firstArg);
-            if (!file.isAbsolute()) {
-                Path currentDir = Paths.get(System.getProperty("user.dir")).toAbsolutePath();
-                file = new File(currentDir.resolve(file.toPath()).toString());
-            }
+            Path filePath = currentDir.resolve(firstArg).normalize(); // Use currentDir
+            File file = filePath.toFile();
 
             if (file.exists() && file.isFile()) {
                 try {
@@ -236,53 +200,38 @@ public class TerminalCommands {
      * */
 
     public void mv(String source,String destination) {
-            String sourcePathStr = source;
-            String destinationPathStr = destination;
-            File sourceFile = new File(sourcePathStr);
-            File destinationFile = new File(destinationPathStr);
+        Path sourcePath = currentDir.resolve(source).normalize(); // Use currentDir
+        Path destinationPath = currentDir.resolve(destination).normalize(); // Use currentDir
+        File sourceFile = sourcePath.toFile();
 
-            // to absolute paths if the source is relative
-            if (!sourceFile.isAbsolute()) {
-                Path currentDir = Paths.get(System.getProperty("user.dir")).toAbsolutePath();
-                sourceFile = new File(currentDir.resolve(sourceFile.toPath()).toString());
-            }
+        if (!sourceFile.exists()) {
+            System.out.println("Source file does not exist: " + sourceFile.getAbsolutePath());
+            return;
+        }
 
-            // resolve the destination path
-            if (!destinationFile.isAbsolute()) {
-                Path currentDir = Paths.get(System.getProperty("user.dir")).toAbsolutePath();
-                destinationFile = new File(currentDir.resolve(destinationFile.toPath()).toString());
-            }
+        // If the destination is a directory, append the source file's name
+        if (Files.isDirectory(destinationPath)) {
+            destinationPath = destinationPath.resolve(sourceFile.getName());
+        }
 
-
-            if (!sourceFile.exists()) {
-                System.out.println("Source file does not exist: " + sourceFile.getAbsolutePath());
-                return;
-            }
-
-            // if the destination is a folder, append the source file's name
-            if (destinationFile.isDirectory()) {
-                destinationFile = new File(destinationFile, sourceFile.getName());
-            }
-
-            //  move or rename the source to the destination
-            boolean success = sourceFile.renameTo(destinationFile);
-            if (success) {
-                System.out.println("Move/Rename the file successfully: " + sourceFile.getAbsolutePath() + " to " + destinationFile.getAbsolutePath());
-            } else {
-                System.out.println("Failed to move/rename: " + sourceFile.getAbsolutePath());
-            }
+        try {
+            Files.move(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("Moved/Renamed the file successfully: " + sourceFile.getAbsolutePath() + " to " + destinationPath.toAbsolutePath());
+        } catch (IOException e) {
+            System.out.println("Failed to move/rename: " + sourceFile.getAbsolutePath());
+        }
 
     }
     /*
-   * ls() lists contents (file & dires) of current directory
-   *
-   *
-   *
-   * */
+     * ls() lists contents (file & dires) of current directory
+     *
+     *
+     *
+     * */
 
 
     public void ls(String[] args) {
-        Path currentDir = Paths.get(System.getProperty("user.dir"));
+
         File[] contents = currentDir.toFile().listFiles();
         // make flags to mark args of command
         boolean showHidden = false;
@@ -317,6 +266,8 @@ public class TerminalCommands {
         final boolean finalShowHidden = showHidden;
         final boolean finalReverseOrder = reverseOrder;
 
+
+
         //  Filter files based on the hidden files setting
         for (File file : contents) {
             if (showHidden || !file.getName().startsWith(".")) {
@@ -324,36 +275,36 @@ public class TerminalCommands {
             }
         }
 
-    // Sort the list based on the reverse order setting
+        // Sort the list based on the reverse order setting
         if (reverseOrder) {
             fileList.sort(Comparator.reverseOrder());
         } else {
             fileList.sort(Comparator.naturalOrder());
         }
 
-    // fileList contains the filtered and sorted files
+        // fileList contains the filtered and sorted files
         for (File file : fileList) {
             System.out.println(file.getName());  // Print each file name
         }
 
 
     }
-  /*
-  * pwd print current path
-  *
-  * */
+    /*
+     * pwd print current path
+     *
+     * */
 
-     public void pwd(){
-         Path currentDir = Paths.get(System.getProperty("user.dir"));
-         System.out.println(currentDir.normalize());// remove  redundant parts from path
-     }
+    public void pwd(){
+
+        System.out.println(currentDir.normalize());// remove  redundant parts from path
+    }
 
     /*
-    * cd change the current directory
-    *
-    *
-    *
-    * */
+     * cd change the current directory
+     *
+     *
+     *
+     * */
 
     public void cd(String[] args) {
         if (args.length > 1) { // if args more than 1
@@ -388,6 +339,37 @@ public class TerminalCommands {
         }
     }
 
+    /*
+    * Help command
+    * clear command
+    *
+    * */
+
+    public void help() {
+        System.out.println("Available Commands:");
+        System.out.println("pwd             : Print the path of the current directory");
+        System.out.println("cd <dir>        : Change directory");
+        System.out.println("ls              : List files and directory in the current directory");
+        System.out.println("ls -r           : Lists files and directories in reverse order");
+        System.out.println("ls -a           : Lists all files and directories, including hidden ones.");
+        System.out.println("mkdir <dir>     : Create new directory");
+        System.out.println("rmdir <dir>     : Remove directory");
+        System.out.println("touch <file>    : Create empty file");
+        System.out.println("mv <src> <dst>  : Move or rename a file");
+        System.out.println("rm <file>       : Remove a file");
+        System.out.println("cat <file>      : Display the file content");
+        System.out.println("cat > <file>    : Overwrite output to a file");
+        System.out.println("cat >> <file>   : Append output to a file");
+        System.out.println("|               : Pipe commands");
+        System.out.println("exit            : Exit the CLI");
+        System.out.println("clear           : Clear the commands");
+    }
+
+    public void clear(){
+        for(int clear=0;clear<50000;clear++){
+            System.out.println();
+        }
+    }
 
 
 
