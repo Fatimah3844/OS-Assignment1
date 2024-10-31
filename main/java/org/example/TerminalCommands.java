@@ -231,89 +231,86 @@ public class TerminalCommands {
 
 
     public void ls(String[] args) {
-        File[] contents = currentDir.toFile().listFiles();
-        boolean showHidden = false;
-        boolean reverseOrder = false;
-        boolean redirectOutput = false;
-        boolean appendOutput = false;
-        String outputFile = null;
+    File[] contents = currentDir.toFile().listFiles();
+    boolean showHidden = false;
+    boolean reverseOrder = false;
+    boolean redirectOutput = false;
+    boolean appendOutput = false;
+    String outputFile = null;
 
-        // Parse arguments
-        int i = 0;
-        while (i < args.length) {
-            switch (args[i]) {
-                case "-a":
-                    showHidden = true;
-                    break;
-                case "-r":
-                    reverseOrder = true;
-                    break;
-                case ">":
-                    redirectOutput = true;
-                    if (i + 1 < args.length) {
-                        outputFile = args[i + 1];
-                    } else {
+    // Process all arguments, including options (-a, -r) and redirection operators (>, >>)
+    for (int i = 0; i < args.length; i++) {
+        switch (args[i]) {
+            case "-a":
+                showHidden = true;
+                break;
+            case "-r":
+                reverseOrder = true;
+                break;
+            case ">":
+                redirectOutput = true;
+                if (i + 1 < args.length) {
+                    outputFile = args[++i];
+                } else {
                     System.out.println("ls: missing file name after '>'");
                     return;
-                    }
-                    i++; // Skip next argument (output file name)
-                    break;
-                case ">>":
-                    appendOutput = true;
-                    if (i + 1 < args.length) {
-                        outputFile = args[i + 1];
-                    } else {
-                        System.out.println("ls: missing file name after '>>'");
-                        return;
-                    }
-                    i++; // Skip next argument (output file name)
-                    break;
-                default:
-                    System.out.println("ls: invalid argument or combination");
+                }
+                break;
+            case ">>":
+                appendOutput = true;
+                if (i + 1 < args.length) {
+                    outputFile = args[++i];
+                } else {
+                    System.out.println("ls: missing file name after '>>'");
                     return;
-            }
-            i++;
-        }
-
-        // Gather the output to display or redirect
-        StringBuilder output = new StringBuilder();
-        if (contents != null) {
-            // Sort in reverse order if needed
-            if (reverseOrder) {
-                Arrays.sort(contents, Collections.reverseOrder());
-            } else {
-                Arrays.sort(contents);
-            }
-
-            for (File file : contents) {
-                // Skip hidden files unless -a is specified
-                if (!showHidden && file.isHidden()) {
-                    continue;
                 }
-                output.append(file.getName()).append("\n");
-            }
-        }
-
-       // Handle output redirection if specified
-        try {
-            if (redirectOutput) {
-                // Overwrite the file when using >
-                try (FileWriter writer = new FileWriter(outputFile, false)) {
-                    writer.write(output.toString());
-                }
-            } else if (appendOutput) {
-                // Append to the file when using >>
-                try (FileWriter writer = new FileWriter(outputFile, true)) {
-                    writer.write(output.toString());
-                }
-            } else {
-                // Print output to console if no redirection
-                System.out.print(output.toString());
-            }
-        } catch (IOException e) {
-            System.out.println("ls: error writing to file: " + e.getMessage());
+                break;
+            default:
+                System.out.println("ls: invalid argument or combination");
+                return;
         }
     }
+
+    // Gather output to display or redirect
+    StringBuilder output = new StringBuilder();
+    if (contents != null) {
+        // Sort in reverse order if needed
+        if (reverseOrder) {
+            Arrays.sort(contents, Collections.reverseOrder());
+        } else {
+            Arrays.sort(contents);
+        }
+
+        for (File file : contents) {
+            // Skip hidden files unless -a is specified
+            if (!showHidden && file.isHidden()) {
+                continue;
+            }
+            output.append(file.getName()).append("\n");
+        }
+    }
+
+    // Handle output redirection if specified
+    try {
+        if (redirectOutput) {
+            // Overwrite the file when using >
+            try (FileWriter writer = new FileWriter(outputFile, false)) {
+                writer.write(output.toString());
+            }
+        } else if (appendOutput) {
+            // Append to the file when using >>
+            try (FileWriter writer = new FileWriter(outputFile, true)) {
+                writer.write(output.toString());
+            }
+        } else {
+            // Print output to console if no redirection
+            System.out.print(output.toString());
+        }
+    } catch (IOException e) {
+        System.out.println("ls: error writing to file: " + e.getMessage());
+    }
+}
+
     /*
      * pwd print current path
      *
