@@ -8,6 +8,8 @@ public class CommandParser {
         this.terminalCommands = new TerminalCommands();
     }
 
+    private static File currentDir = new File(System.getProperty("user.dir"));
+
     private void runCommand(String command) {
         try {
             // Split the command by '|' to identify and handle any piping
