@@ -231,86 +231,64 @@ public class TerminalCommands {
 
 
     public void ls(String[] args) {
-    File[] contents = currentDir.toFile().listFiles();
-    boolean showHidden = false;
-    boolean reverseOrder = false;
-    boolean redirectOutput = false;
-    boolean appendOutput = false;
-    String outputFile = null;
 
-    // Process all arguments, including options (-a, -r) and redirection operators (>, >>)
-    for (int i = 0; i < args.length; i++) {
-        switch (args[i]) {
-            case "-a":
+        File[] contents = currentDir.toFile().listFiles();
+        // make flags to mark args of command
+        boolean showHidden = false;
+        boolean reverseOrder = false;
+
+        // this command can take different options -a , -r
+
+        if (args.length == 1) {
+            if (args[0].equals("-a")) { // will show all files including hidden ones
                 showHidden = true;
-                break;
-            case "-r":
+            } else if (args[0].equals("-r")) { // will show or lists files in reverse order excluding hidden ones
                 reverseOrder = true;
-                break;
-            case ">":
-                redirectOutput = true;
-                if (i + 1 < args.length) {
-                    outputFile = args[++i];
-                } else {
-                    System.out.println("ls: missing file name after '>'");
-                    return;
-                }
-                break;
-            case ">>":
-                appendOutput = true;
-                if (i + 1 < args.length) {
-                    outputFile = args[++i];
-                } else {
-                    System.out.println("ls: missing file name after '>>'");
-                    return;
-                }
-                break;
-            default:
-                System.out.println("ls: invalid argument or combination");
+            } else {
+                System.out.println("ls: invalid argument (currently supports only -r or -a)");
                 return;
+            }
+        } else if (args.length == 2) { // if 2 options provided , it wii mark flags
+            if ((args[0].equals("-a") && args[1].equals("-r")) || (args[0].equals("-r") && args[1].equals("-a"))) {
+                showHidden = true;
+                reverseOrder = true;
+            } else {
+                System.out.println("ls: invalid combination of arguments");
+                return;
+            }
+        } else if (args.length > 2) {
+            System.out.println("ls: too many arguments");
+            return;
         }
-    }
 
-    // Gather output to display or redirect
-    StringBuilder output = new StringBuilder();
-    if (contents != null) {
-        // Sort in reverse order if needed
-        if (reverseOrder) {
-            Arrays.sort(contents, Collections.reverseOrder());
-        } else {
-            Arrays.sort(contents);
-        }
 
+        List<File> fileList = new ArrayList<>();
+        final boolean finalShowHidden = showHidden;
+        final boolean finalReverseOrder = reverseOrder;
+
+
+
+        //  Filter files based on the hidden files setting
         for (File file : contents) {
-            // Skip hidden files unless -a is specified
-            if (!showHidden && file.isHidden()) {
-                continue;
+            if (showHidden || !file.getName().startsWith(".")) {
+                fileList.add(file);
             }
-            output.append(file.getName()).append("\n");
         }
-    }
 
-    // Handle output redirection if specified
-    try {
-        if (redirectOutput) {
-            // Overwrite the file when using >
-            try (FileWriter writer = new FileWriter(outputFile, false)) {
-                writer.write(output.toString());
-            }
-        } else if (appendOutput) {
-            // Append to the file when using >>
-            try (FileWriter writer = new FileWriter(outputFile, true)) {
-                writer.write(output.toString());
-            }
+        // Sort the list based on the reverse order setting
+        if (reverseOrder) {
+            fileList.sort(Comparator.reverseOrder());
         } else {
-            // Print output to console if no redirection
-            System.out.print(output.toString());
+            fileList.sort(Comparator.naturalOrder());
         }
-    } catch (IOException e) {
-        System.out.println("ls: error writing to file: " + e.getMessage());
-    }
-}
 
+        // fileList contains the filtered and sorted files
+        for (File file : fileList) {
+            System.out.println(file.getName());  // Print each file name
+        }
+
+
+    }
     /*
      * pwd print current path
      *
