@@ -1,5 +1,6 @@
 package org.example;
 import java.util.Scanner;
+import java.io.*;
 
 public class CommandParser {
     private TerminalCommands terminalCommands;
