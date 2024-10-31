@@ -1,6 +1,12 @@
 package org.example;
-import java.util.Scanner;
 import java.io.*;
+import java.nio.file.*;
+import java.util.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Scanner;
 
 public class CommandParser {
     private TerminalCommands terminalCommands;
