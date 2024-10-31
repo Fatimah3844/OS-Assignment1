@@ -20,6 +20,7 @@ public class CommandParser {
         String input;
 
         System.out.println("Welcome to the CLI. Type 'exit' to quit.");
+        terminalCommands.help();
 
         while (true) {
             System.out.print("> "); // Prompt for input
