@@ -294,16 +294,24 @@ public class TerminalCommands {
             }
         }
 
-        // Handle output redirection if specified
-        if (redirectOutput || appendOutput) {
-            try (FileWriter writer = new FileWriter(outputFile, appendOutput)) {
-                writer.write(output.toString());
-            } catch (IOException e) {
-                System.out.println("ls: error writing to file: " + e.getMessage());
+       // Handle output redirection if specified
+        try {
+            if (redirectOutput) {
+                // Overwrite the file when using >
+                try (FileWriter writer = new FileWriter(outputFile, false)) {
+                    writer.write(output.toString());
+                }
+            } else if (appendOutput) {
+                // Append to the file when using >>
+                try (FileWriter writer = new FileWriter(outputFile, true)) {
+                    writer.write(output.toString());
+                }
+            } else {
+                // Print output to console if no redirection
+                System.out.print(output.toString());
             }
-        } else {
-            // Print output to console
-            System.out.print(output.toString());
+        } catch (IOException e) {
+            System.out.println("ls: error writing to file: " + e.getMessage());
         }
     }
     /*
