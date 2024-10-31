@@ -100,6 +100,12 @@ public class CommandParser {
             case "pwd":
                 terminalCommands.pwd();
                 break;
+            case "help":
+                terminalCommands.help();
+                break;
+            case "clear":
+                terminalCommands.clear();
+                break;
             default:
                 System.out.println("Unknown command: " + command);
                 break;
