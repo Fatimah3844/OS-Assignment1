@@ -12,7 +12,7 @@ public class CommandParser {
         Scanner scanner = new Scanner(System.in);
         String input;
 
-        System.out.println("Welcome to the CLI. Type 'exit' to quit, help to show available commands and clear to clean up the console.");
+        System.out.println("Welcome to the CLI. Type 'exit' to quit.");
 
         while (true) {
             System.out.print("> "); // Prompt for input
@@ -22,60 +22,90 @@ public class CommandParser {
                 break; // Exit the loop if user types 'exit'
             }
 
-            //split user input to array based on space
+            // Handle output redirection and piping
             String[] tokens = input.split(" ");
-
-            //command is the first index
             String command = tokens[0];
-            //rest of the array
             String[] args = new String[tokens.length - 1];
-            //copy from token array to args array
             System.arraycopy(tokens, 1, args, 0, tokens.length - 1);
 
-            switch (command.toLowerCase()) {
-                case "mkdir":
-                    terminalCommands.mkdir(args);
-                    break;
-                case "rmdir":
-                    terminalCommands.rmdir(args);
-                    break;
-                case "rm":
-                    terminalCommands.rm(args);
-                    break;
-                case "touch":
-                    terminalCommands.touch(args);
-                    break;
-                case "cat":
-                    terminalCommands.cat(args);
-                    break;
-                case "mv":
-                    if (args.length == 2) {
-                        terminalCommands.mv(args[0], args[1]);
-                    } else {
-                        System.out.println("Invalid usage of mv command.");
-                    }
-                    break;
-                case "ls":
-                    terminalCommands.ls(args);
-                    break;
-                case "cd":
-                    terminalCommands.cd(args);
-                    break;
-                case "pwd":
-                    terminalCommands.pwd();
-                    break;
-                case "help":
-                    terminalCommands.help();
-                    break;
-                case "clear":
-                    terminalCommands.clear();
-                    break;
-                default:
-                    System.out.println("Unknown command: " + command);
-                    break;
+            if (input.contains("|")) {
+                String[] pipeCommands = input.split("\\|");
+                for (String pipeCommand : pipeCommands) {
+                    // Process each command in the pipe
+                    processCommand(pipeCommand.trim());
+                }
+            } else {
+                processCommand(input);
             }
         }
         scanner.close();
+    }
+
+    private void processCommand(String commandLine) {
+        String[] tokens = commandLine.split(" ");
+        String command = tokens[0];
+        String[] args = new String[tokens.length - 1];
+        System.arraycopy(tokens, 1, args, 0, tokens.length - 1);
+
+        if (args.length > 0 && (args[args.length - 1].equals(">") || args[args.length - 1].equals(">>"))) {
+            String redirectFile = args[args.length - 2];
+            if (args[args.length - 1].equals(">")) {
+                // Redirect output to a file
+                redirectOutput(redirectFile, false);
+            } else {
+                // Append output to a file
+                redirectOutput(redirectFile, true);
+            }
+            // Remove the redirection part from args
+            args = Arrays.copyOf(args, args.length - 2);
+        }
+
+        switch (command.toLowerCase()) {
+            case "mkdir":
+                terminalCommands.mkdir(args);
+                break;
+            case "rmdir":
+                terminalCommands.rmdir(args);
+                break;
+            case "rm":
+                terminalCommands.rm(args);
+                break;
+            case "touch":
+                terminalCommands.touch(args);
+                break;
+            case "cat":
+                terminalCommands.cat(args);
+                break;
+            case "mv":
+                if (args.length == 2) {
+                    terminalCommands.mv(args[0], args[1]);
+                } else {
+                    System.out.println("Invalid usage of mv command.");
+                }
+                break;
+            case "ls":
+                terminalCommands.ls(args);
+                break;
+            case "cd":
+                terminalCommands.cd(args);
+                break;
+            case "pwd":
+                terminalCommands.pwd();
+                break;
+            default:
+                System.out.println("Unknown command: " + command);
+                break;
+        }
+    }
+
+    private void redirectOutput(String fileName, boolean append) {
+        try {
+            PrintStream out = new PrintStream(new FileOutputStream(fileName, append));
+            System.setOut(out);
+            System.setErr(out);
+        } catch (FileNotFoundException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
     }
 
 }
